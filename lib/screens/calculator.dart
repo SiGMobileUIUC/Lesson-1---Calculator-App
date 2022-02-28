@@ -10,6 +10,7 @@ class Calculator extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.black),
       home: const CalcView(),
+      title: "Calculator",
     );
   }
 }
@@ -25,45 +26,30 @@ class _CalcViewState extends State<CalcView> {
   String input = "0";
   String output = "";
   String equation = "";
-
   Container buildButton(
       {String text = "", Color? color, double? fontSize, Color? fontColor}) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 15.0),
+      padding: const EdgeInsets.all(5),
       child: TextButton(
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all(RoundedRectangleBorder(
-            side: BorderSide.none,
-            borderRadius: BorderRadius.circular(10.0),
-          )),
-          backgroundColor: MaterialStateProperty.all(color),
-        ),
         onPressed: () => calculation(text),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            text == "\u232B"
-                ? Icon(
-                    Icons.backspace_outlined,
-                    color: fontColor,
-                    size: 35.0,
-                  )
-                : Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      color: fontColor,
-                    ),
-                  ),
-          ],
-        ),
+        child: text == "\u232B"
+            ? Icon(
+                Icons.backspace_outlined,
+                color: fontColor,
+                size: 30.0,
+              )
+            : Text(
+                text,
+                style: TextStyle(color: fontColor, fontSize: 25),
+              ),
+        style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color)),
       ),
     );
   }
 
-  void calculation(String button) {
+  calculation(String text) {
     setState(() {
-      switch (button) {
+      switch (text) {
         case "C":
           input = "0";
           output = "";
@@ -80,8 +66,6 @@ class _CalcViewState extends State<CalcView> {
               input = "0";
             }
           }
-          break;
-        case "+/-":
           break;
         case "\u003D":
           equation = input;
@@ -102,22 +86,62 @@ class _CalcViewState extends State<CalcView> {
         case "+":
         case "^":
           if (output.isNotEmpty) {
-            input = output + button;
-            output = "";
+            input = output + text;
           } else if (input == "0") {
-            input = button;
+            input = text;
           } else {
-            input += button;
+            input += text;
+          }
+          break;
+        case "+/-":
+          if (int.tryParse(input[input.length - 1]) != null) {
+            int index = input.lastIndexOf(RegExp(r"\+|-|\u00F7|\u00D7"));
+            if (int.tryParse(input[index - 1]) != null) {
+              switch (input[index]) {
+                case "+":
+                  input = input.replaceRange(
+                      index, input.length, "-${input.substring(index + 1)}");
+                  break;
+                case "-":
+                  input = input.replaceRange(
+                      index, input.length, "+${input.substring(index + 1)}");
+                  break;
+                case "\u00F7":
+                  input = input.replaceRange(index + 1, input.length,
+                      "-${input.substring(index + 1)}");
+                  break;
+                case "\u00D7":
+                  input = input.replaceRange(index + 1, input.length,
+                      "-${input.substring(index + 1)}");
+                  break;
+              }
+            } else {
+              switch (input[index]) {
+                case "+":
+                  input = input.replaceRange(
+                      index, input.length, "-${input.substring(index + 1)}");
+                  break;
+                case "-":
+                  input = input.replaceRange(
+                      index, input.length, input.substring(index + 1));
+                  break;
+              }
+            }
           }
           break;
         default:
           if (output.isNotEmpty) {
-            input = button;
-            output = "";
+            if (int.tryParse(input[input.length - 1]) == null) {
+              input += text;
+              output = "";
+            } else {
+              input = text;
+              output = "";
+            }
           } else if (input == "0") {
-            input = button;
+            input = text;
           } else {
-            input += button;
+            input += text;
           }
       }
     });
@@ -130,16 +154,17 @@ class _CalcViewState extends State<CalcView> {
         title: const Text(
           "Calculator",
           style: TextStyle(
-            fontSize: 35.0,
+            fontSize: 30.0,
           ),
         ),
         centerTitle: true,
       ),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(15.0),
             child: Text(
               input,
               style: const TextStyle(
@@ -149,7 +174,7 @@ class _CalcViewState extends State<CalcView> {
           ),
           Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(15.0),
             child: Text(
               output,
               style: const TextStyle(
