@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
 
 /// This is the root widget of the Calculator app. In Flutter, there are 2 main
 /// types of widgets, Stateful widgets and Stateless widgets. In this case, the
@@ -94,7 +95,7 @@ class _CalcViewState extends State<CalcView> {
     return Container(
       padding: const EdgeInsets.all(5),
       child: TextButton(
-        onPressed: () {},
+        onPressed: () => calculation(text),
         child: text == "\u232B"
             ? Icon(
                 Icons.backspace_outlined,
@@ -108,6 +109,109 @@ class _CalcViewState extends State<CalcView> {
         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color)),
       ),
     );
+  }
+
+  /// [calculation] makes the calculations for the app based on the [text]
+  /// passed. It strips [text] down to a string that can be interpreted by the
+  /// [math_expressions] package.
+  calculation(String text) {
+    setState(() {
+      switch (text) {
+        case "C":
+          input = "0";
+          output = "";
+          equation = "";
+          break;
+        case "\u232B":
+          if (output.isNotEmpty) {
+            input = "0";
+            output = "";
+            equation = "";
+          } else {
+            input = input.substring(0, input.length - 1);
+            if (input == "") {
+              input = "0";
+            }
+          }
+          break;
+        case "\u003D":
+          equation = input;
+          equation = equation.replaceAll("\u00F7", "/");
+          equation = equation.replaceAll("\u00D7", "*");
+          try {
+            Parser p = Parser();
+            Expression exp = p.parse(equation);
+            ContextModel cm = ContextModel();
+            output = "${exp.evaluate(EvaluationType.REAL, cm)}";
+          } catch (e) {
+            output = "Error";
+          }
+          break;
+        case "\u00F7":
+        case "\u00D7":
+        case "-":
+        case "+":
+        case "^":
+          if (output.isNotEmpty) {
+            input = output + text;
+          } else if (input == "0") {
+            input = text;
+          } else {
+            input += text;
+          }
+          break;
+        case "+/-":
+          if (int.tryParse(input[input.length - 1]) != null) {
+            int index = input.lastIndexOf(RegExp(r"\+|-|\u00F7|\u00D7"));
+            if (int.tryParse(input[index - 1]) != null) {
+              switch (input[index]) {
+                case "+":
+                  input = input.replaceRange(
+                      index, input.length, "-${input.substring(index + 1)}");
+                  break;
+                case "-":
+                  input = input.replaceRange(
+                      index, input.length, "+${input.substring(index + 1)}");
+                  break;
+                case "\u00F7":
+                  input = input.replaceRange(index + 1, input.length,
+                      "-${input.substring(index + 1)}");
+                  break;
+                case "\u00D7":
+                  input = input.replaceRange(index + 1, input.length,
+                      "-${input.substring(index + 1)}");
+                  break;
+              }
+            } else {
+              switch (input[index]) {
+                case "+":
+                  input = input.replaceRange(
+                      index, input.length, "-${input.substring(index + 1)}");
+                  break;
+                case "-":
+                  input = input.replaceRange(
+                      index, input.length, input.substring(index + 1));
+                  break;
+              }
+            }
+          }
+          break;
+        default:
+          if (output.isNotEmpty) {
+            if (int.tryParse(input[input.length - 1]) == null) {
+              input += text;
+              output = "";
+            } else {
+              input = text;
+              output = "";
+            }
+          } else if (input == "0") {
+            input = text;
+          } else {
+            input += text;
+          }
+      }
+    });
   }
 
   @override
