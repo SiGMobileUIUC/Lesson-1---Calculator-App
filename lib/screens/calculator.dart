@@ -163,36 +163,42 @@ class _CalcViewState extends State<CalcView> {
         case "+/-":
           if (int.tryParse(input[input.length - 1]) != null) {
             int index = input.lastIndexOf(RegExp(r"\+|-|\u00F7|\u00D7"));
-            if (int.tryParse(input[index - 1]) != null) {
-              switch (input[index]) {
-                case "+":
-                  input = input.replaceRange(
-                      index, input.length, "-${input.substring(index + 1)}");
-                  break;
-                case "-":
-                  input = input.replaceRange(
-                      index, input.length, "+${input.substring(index + 1)}");
-                  break;
-                case "\u00F7":
-                  input = input.replaceRange(index + 1, input.length,
-                      "-${input.substring(index + 1)}");
-                  break;
-                case "\u00D7":
-                  input = input.replaceRange(index + 1, input.length,
-                      "-${input.substring(index + 1)}");
-                  break;
+            if (index != -1 && index != 0) {
+              if (int.tryParse(input[index - 1]) != null) {
+                switch (input[index]) {
+                  case "+":
+                    input = input.replaceRange(
+                        index, input.length, "-${input.substring(index + 1)}");
+                    break;
+                  case "-":
+                    input = input.replaceRange(
+                        index, input.length, "+${input.substring(index + 1)}");
+                    break;
+                  case "\u00F7":
+                    input = input.replaceRange(index + 1, input.length,
+                        "-${input.substring(index + 1)}");
+                    break;
+                  case "\u00D7":
+                    input = input.replaceRange(index + 1, input.length,
+                        "-${input.substring(index + 1)}");
+                    break;
+                }
+              } else {
+                switch (input[index]) {
+                  case "+":
+                    input = input.replaceRange(
+                        index, input.length, "-${input.substring(index + 1)}");
+                    break;
+                  case "-":
+                    input = input.replaceRange(
+                        index, input.length, input.substring(index + 1));
+                    break;
+                }
               }
+            } else if (index == -1) {
+              input = "-$input";
             } else {
-              switch (input[index]) {
-                case "+":
-                  input = input.replaceRange(
-                      index, input.length, "-${input.substring(index + 1)}");
-                  break;
-                case "-":
-                  input = input.replaceRange(
-                      index, input.length, input.substring(index + 1));
-                  break;
-              }
+              input = input.substring(1);
             }
           }
           break;
